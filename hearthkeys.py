@@ -1,6 +1,12 @@
-import pyautogui
-import pynput 
-
+#TO DO: try and implement tkinter bind method instead of pyput
+#       try and make 2 windows, one transparent and one that kills the apps completly
+from os import error
+import tkinter
+from tkinter import font
+from pyautogui import *
+from pynput import *
+from tkinter import *
+import sys
 # L - End Turn
 # K - Hero Power
 # Z X C V B N M , . / - Hand Cards
@@ -20,30 +26,56 @@ keys = {
 }
 
 lastKey = "F"
-pressed = 0
-
-def on_press(key):
-    global lastKey, pressed
-    print("You pressed {0}".format(key.char))
-    pyautogui.moveTo(keys[key.char.upper()], duration=0.3)
-    if(lastKey == key.char):
-        print("You pressed {0} twice".format(key.char))
-        pyautogui.click()
-    lastKey = key.char
+class main_window:
+    def __init__(self, master):
+        self.master = master
+        self.frame = tkinter.Frame(self.master)
+        self.start_button = tkinter.Button(self.frame, text='start hearthkeys', command=self.new_window)
+        self.close_button = tkinter.Button(self.frame, text='close hearthkeys', command=self.close_window)
+        self.start_button.pack()
+        self.close_button.pack()
+        self.frame.pack()
     
+    def new_window(self):
+        self.newWindow = tkinter.Toplevel(self.master)
+        self.app = hearthkeys_window(self.newWindow)
 
-def on_release(key):
-    # print("You released {0}".format(key.char))
-    
-    
-    if key == pynput.keyboard.Key.esc:
-        # Stop listener
-        return False
+    def close_window(self):
+        self.master.destroy()
 
-# Collect events until released
-with pynput.keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-    listener.join()
+class hearthkeys_window:
+    def __init__(self, master):
+        self.master = master
+        
+        width= master.winfo_screenwidth()
+        height= master.winfo_screenheight()
 
-# ...or, in a non-blocking fashion:
-listener = pynput.keyboard.Listener(on_press=on_press, on_release=on_release)
-listener.start()
+        master.wm_attributes('-transparentcolor', 'red')
+
+        self.frame = tkinter.Frame(self.master, width=width, height=height, background='red')
+        self.test_label = tkinter.Label(self.frame, text="test", background='white', font=("Consolas", 20, "bold"), foreground='black')
+        self.test_label.pack(pady=20)
+        self.frame.pack()
+
+        master.attributes('-topmost', True)
+        master.overrideredirect(1)
+
+    def on_press(key):
+        global lastKey
+
+        if(key == keyboard.Key.esc): # close script if 'esc' is pressed
+            print("Closing script...")
+            sys.exit()
+        try:
+            moveTo(keys[key.char.upper()], duration=0.1) # if key is in keys, move the cursor
+            print("You pressed {0}".format(key.char))
+
+            if(lastKey == key.char): # verify if the key is pressed twice
+                print('You pressed {0} twice'.format(key.char))
+                click()
+            lastKey = key.char
+        except (KeyError, AttributeError) as errors: # if key is not in keys, show error
+            print("no keybind " + str(errors))
+        
+    listener = keyboard.Listener(on_press=on_press) # start keyboard listener 
+    listener.start()
