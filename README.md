@@ -1,2 +1,2 @@
 # hearthkeys
-Play Hearthstone without using a keyboard!
+Play Hearthstone using a keyboard!
